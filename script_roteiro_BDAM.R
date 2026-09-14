@@ -77,10 +77,8 @@ dados_bd1$F_IDADE = ifelse(dados_bd1$IDADE_CONDUTOR_CAUSADOR < 35, "22 a 34", "3
 # Ler o arquivo, verificar estrutura dos dados e dar uma olhada nos dados
 # Ler o banco de dados
 dados_bd2 <- read.csv("banco 2 SINASC.csv", header = TRUE, sep = ",")
-
 # Verificar a estrutura dos dados
 str(dados_bd2)
-
 # Visualizar o banco
 View(dados_bd2)
 # Resumo das variáveis
@@ -92,6 +90,11 @@ summary(dados_bd2)
 # Padronizar as categorias SEXO_PROPRIETARIO para Masculino e Feminino
 # Atribuir legendas para a variável TIPO_VEICULO, sendo 1: Carro e 2: Moto
 # Criar uma nova variável em dados_bd2 F_IDADE categorizando as idades em: 22 a 34, 35 a 45
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR == ""] = NA
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR %in% c("carro", "CARRO")] = "Carro"
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR %in% c("moto", "MOTO")] = "Moto"
+dados_bd1$SEXO_CONDUTOR_CAUSADOR = factor(dados_bd1$SEXO_CONDUTOR_CAUSADOR, levels = c(1,2), labels = c("Masculino", "Feminino"))
+dados_bd1$F_IDADE = ifelse(dados_bd1$IDADE_CONDUTOR_CAUSADOR < 35, "22 a 34", "35 a 45")
 
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
