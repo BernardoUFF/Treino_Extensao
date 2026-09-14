@@ -20,11 +20,14 @@ View(dados_bd1)
 
 
 # Tarefa 2: Manipulação dos dados
-# Padronizar as categorias VEICULO_CAUSADOR para Carro e Moto e indicar que branco é NA
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR == ""] = NA
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR %in% c("carro","CARRO")] = "Carro"
+dados_bd1$VEICULO_CAUSADOR[dados_bd1$VEICULO_CAUSADOR %in% c("moto","MOTO")] = "Moto"
 # Atribuir legendas para a variável SEXO_CONDUTOR_CAUSADOR, sendo 1: Masculino e 2: Feminino
+dados_bd1$SEXO_CONDUTOR_CAUSADOR = factor(dados_bd1$SEXO_CONDUTOR_CAUSADOR, levels = c(1,2), labels = c("Masculino", "Feminino"))
 
 # Criar uma nova variável em dados_bd1 F_IDADE categorizando as idades em: 22 a 34, 35 a 45
-
+dados_bd1$F_IDADE = ifelse(dados_bd1$IDADE_CONDUTOR_CAUSADOR < 35, "22 a 34", "35 a 45")
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
