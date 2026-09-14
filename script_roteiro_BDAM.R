@@ -63,10 +63,10 @@
 
 # Tarefa 1: Leitura do banco de dados banco 2 = SINASC.csv com o nome de dados_bd2
 # Ler o arquivo, verificar estrutura dos dados e dar uma olhada nos dados
-dados_bd2= read.csv("banco 2 = SINASC.csv", header = TRUE, sep = ";")
+dados_bd2 = read.csv("banco 2 = SINASC.csv", header = TRUE, sep=";")
 str(dados_bd2)
 summary(dados_bd2)
-attach(dados_bd2)
+View(dados_bd2)
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
 
@@ -74,15 +74,23 @@ attach(dados_bd2)
 # Padronizar as categorias SEXO_PROPRIETARIO para Masculino e Feminino
 # Atribuir legendas para a variável TIPO_VEICULO, sendo 1: Carro e 2: Moto
 # Criar uma nova variável em dados_bd2 F_IDADE categorizando as idades em: 22 a 34, 35 a 45
-dados_bd2$SEXO_PROPRIETARIO=factor(dados_bd2$SEXO_PROPRIETARIO, levels =c(1, 2), labels =c("Masculino", "Feminino"))
-dados_bd2$TIPO_VEICULO=factor(dados_bd2$TIPO_VEICULO, levels = c(1, 2), labels = c("Carro", "Moto"))
-dados_bd2$f_idade = ifelse(dados_bd2$IDADE_PROPRIETARIO >= 22 & dados_bd2$IDADE_PROPRIETARIO <= 34, "22 a 34", 
-                           ifelse(dados_bd2$IDADE_PROPRIETARIO >= 35 & dados_bd2$IDADE_PROPRIETARIO <=45, "35 a 45", NA))
-table(dados_bd2$f_idade)
+dados_bd2$SEXO_PROPRIETARIO= factor(dados_bd2$SEXO_PROPRIETARIO, levels = c(1,2), labels = c("Masculino", "Feminino"))
+dados_bd2$TIPO_VEICULO= factor(dados_bd2$TIPO_VEICULO, levels = c(1,2), labels = c("Carro", "Moto"))
+dados_bd2$F_IDADE = ifelse(dados_bd2$IDADE_PROPRIETARIO < 35, "22 a 34", "35 a 45")
+
+
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
-# Tarefa 3: Criar o banco de dados BANCO2_RJ, POR MUNICÍPIO, com as seguintes variáveis listadas abaixo. 
+# Tarefa 3: Leitura do banco de dados Tabela_PAM.csv (com o nome tabela_pam) e:
+# agregar ao banco dados_bd2 as informações de VALOR_P10 e VALOR_P90
+# criar a variável PAM (somente quando TIPO_VEICULO = "Carro"), de acordo com IDADE_PROPRIETARIO e SEXO_PROPRIETARIO, com as seguintes categorias:
+# PAM = "PIC", se VALOR_VEICULO < VALOR_P10; "AIC", se VALOR_P10 <= VALOR_VEICULO <= VALOR_P90; "GIC", se VALOR_VEICULO > VALOR_P90
+
+# Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
+
+ 
+# Tarefa 4: Criar o banco de dados BANCO2_RJ, POR MUNICÍPIO, com as seguintes variáveis listadas abaixo. 
 # Variáveis que se referem a medidas de posição e de dispersão devem ser calculadas sem considerar NAs
 
 # Atenção: a 1a linha do banco deve ser da UF 33
@@ -101,14 +109,16 @@ table(dados_bd2$f_idade)
 # V_P25: percentil 25 do valor dos veículos vendidos
 # V_P50: percentil 50 do valor dos veículos vendidos
 # V_P75: percentil 75 do valor dos veículos vendidos
+# TPIC: total de compradores com perfil PIC
+# TAIC: total de compradores com perfil AIC
+# TGIC: total de compradores com perfil GIC
 
-# Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
+# Ao terminar a Tarefa 4 commit com a mensagem " script - tarefa 1 a 4" e envie para o repositório Treino_Extensao
 
 
-# Tarefa 4: Exportar o banco de dados BANCO2_RJ com o nome BANCO2_RJ.csv
+# Tarefa 5: Exportar o banco de dados BANCO2_RJ com o nome BANCO2_RJ.csv
 
-# Ao terminar a Tarefa 4 commit com a mensagem "dados e script - Etapa 2" e envie para o repositório Treino_Extensao
-
+# Ao terminar a Tarefa 5 commit com a mensagem "dados e script - Etapa 2" e envie para o repositório Treino_Extensao
 
 
 ##### ETAPA 3 - banco 3 - equivalente ao SIDRA ######
