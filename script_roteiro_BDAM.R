@@ -12,13 +12,17 @@
 
 # Tarefa 1: Leitura do banco de dados banco 1 = SIM.csv com o nome de dados_bd1
 # Ler o arquivo, verificar estrutura dos dados e dar uma olhada nos dados
-
+dados_bd1 = read.csv("banco 1 SIM.csv", header = T, sep = ";")
+str(dados_bd1)
+summary(dados_bd1)
+View(dados_bd1)
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
 
 # Tarefa 2: Manipulação dos dados
 # Padronizar as categorias VEICULO_CAUSADOR para Carro e Moto e indicar que branco é NA
 # Atribuir legendas para a variável SEXO_CONDUTOR_CAUSADOR, sendo 1: Masculino e 2: Feminino
+
 # Criar uma nova variável em dados_bd1 F_IDADE categorizando as idades em: 22 a 34, 35 a 45
 
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
