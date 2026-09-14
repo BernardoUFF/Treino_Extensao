@@ -1,0 +1,474 @@
+================================================================================
+          ANÁLISE DE SOBREVIVÊNCIA E CONFIABILIDADE (UFF)
+        GUIA COMPLETO DE CÓDIGO, ESTRUTURA E PARÂMETROS
+================================================================================
+
+Este documento descreve detalhadamente cada bloco de código R utilizado no 
+curso de Análise de Sobrevivência da UFF, detalhando bibliotecas, funções, 
+parâmetros e variáveis envolvidas.
+
+--------------------------------------------------------------------------------
+BLOCO 1: CARREGAMENTO DE PACOTES
+--------------------------------------------------------------------------------
+CÓDIGO:
+require(dplyr)
+require(ggplot2)
+require(survival)     
+require(ggsurvfit)
+require(survRM2)
+require(coin)
+require(survminer)
+require(multcompView)
+
+DESCRIÇÃO E VARIÁVEIS DE CONFIGURAÇÃO:
+- dplyr: Manipulação e transformação de tabelas/data frames.
+- ggplot2: Motor gráfico base para dados estatísticos.
+- survival: Pacote essencial de Análise de Sobrevivência (funções Surv, survfit, survdiff).
+- ggsurvfit: Interface moderna baseada em ggplot2 para plotar curvas de sobrevivência e risco.
+- survRM2: Métodos para cálculo do Tempo de Sobrevivência Média Restrita (RMST).
+- coin: Testes não-paramétricos de permutação/independência (usado para Peto-Peto).
+- survminer: Ferramentas auxiliares para análise de sobrevivência (pairwise_survdiff).
+- multcompView: Visualização e agrupamento de comparações múltiplas.
+
+--------------------------------------------------------------------------------
+BLOCO 2: ESTIMADOR DE KAPLAN-MEIER (SOBREVIVÊNCIA)
+--------------------------------------------------------------------------------
+CÓDIGO:
+ekm <- survfit2(data = Dados,
+                formula = Surv(tempos, cens) ~ grupos,
+                conf.type = "plain" ou "log" ou "log-log", 
+                conf.int = 0.95)
+summary(ekm)
+summary(ekm, times = c(???))
+
+VARIÁVEIS E PARÂMETROS:
+- `Dados`: Dataframe R que contém os dados amostrais.
+- `tempos`: Variável numérica com o tempo até o evento ou censura.
+- `cens`: Variável binária de censura/evento (1 = evento/falha ocorreu; 0 = censura/perda de seguimento).
+- `grupos`: Variável categórica/fator que divide a amostra em estratos (tratamento A vs B, etc.).
+- `Surv(tempos, cens)`: Cria o objeto formal de sobrevivência da biblioteca `survival`.
+- `conf.type`: Método matemático para cálculo do Intervalo de Confiança (IC) de S(t):
+  * "plain": IC assintótico linear simples. Pode gerar limites fora do intervalo [0, 1].
+  * "log": Aplica transformação logarítmica. Melhora a aproximação em amostras moderadas.
+  * "log-log": Aplica transformação log(-log(S(t))). Recomendado, pois garante estritamente IC em [0, 1].
+- `conf.int = 0.95`: Nível de confiança desejado (95%).
+- `times = c(...)`: Vetor numérico com tempos específicos de interesse (ex: `times = c(5, 10, 20)`).
+
+--------------------------------------------------------------------------------
+BLOCO 3: GRÁFICO DA CURVA DE SOBREVIVÊNCIA DE KAPLAN-MEIER
+--------------------------------------------------------------------------------
+CÓDIGO:
+ggsurvfit(ekm, linewidth = 1.2) +
+  add_confidence_interval() +
+  add_censor_mark(size = 2, alpha = 1) +
+  add_risktable() +
+  scale_ggsurvfit() +
+  labs(
+    x = "Tempo (semanas)",
+    y = "Sobrevivência estimada"
+  ) +
+  theme_classic(base_size = 16)
+
+PARÂMETROS VISUAIS E FUNÇÕES:
+- `ggsurvfit(ekm, linewidth = 1.2)`: Plota a curva em degraus referente ao objeto `ekm`. `linewidth` define a espessura da linha.
+- `add_confidence_interval()`: Adiciona a faixa sombreada do Intervalo de Confiança.
+- `add_censor_mark(size = 2, alpha = 1)`: Adiciona marcas (traços) nos tempos em que ocorrem censuras. `size` é o tamanho do traço e `alpha` a opacidade.
+- `add_risktable()`: Adiciona a tabela de indivíduos sob risco logo abaixo do eixo X.
+- `scale_ggsurvfit()`: Ajusta automaticamente e eixos X/Y para padrões de sobrevivência (Y de 0 a 1).
+- `labs()`: Rótulos customizados para os eixos X e Y.
+- `theme_classic(base_size = 16)`: Estilo visual do gráfico com fonte de tamanho 16.
+
+--------------------------------------------------------------------------------
+BLOCO 4: QUANTIS DA SOBREVIVÊNCIA (MEDIANA E OUTROS PERCENTIS)
+--------------------------------------------------------------------------------
+CÓDIGO:
+quantile(ekm, p)
+
+PARÂMETROS:
+- `ekm`: Objeto gerado pela função `survfit` ou `survfit2`.
+- `p`: Probabilidade acumulada do evento ou proporção de falha desejada.
+  * Se `p = 0.5`: Retorna a **Mediana** do tempo de sobrevivência (tempo onde S(t) atinge 50%).
+  * Se `p = 0.25`: Retorna o 1º quartil de tempo de falha (onde S(t) atinge 75%).
+  * Se `p = 0.75`: Retorna o 3º quartil de tempo de falha (onde S(t) atinge 25%).
+
+--------------------------------------------------------------------------------
+BLOCO 5: ESTIMADOR DE NELSON-AALEN (RISCO ACUMULADO)
+--------------------------------------------------------------------------------
+CÓDIGO:
+fit_na <- survfit2(
+  Surv(tempos, cens) ~ grupos,
+  data = Dados,
+  conf.type = "plain" ou "log" ou "log-log", 
+  type = "fh"  
+)
+
+PARÂMETROS:
+- `type = "fh"`: Define a estimação via Fleming-Harrington, que equivale ao Estimador de Nelson-Aalen para a Função de Risco Acumulado $H(t)$.
+
+--------------------------------------------------------------------------------
+BLOCO 6: FUNÇÃO CUSTOMIZADA DA TABELA DE NELSON-AALEN
+--------------------------------------------------------------------------------
+CÓDIGO:
+tabela_nelson_aalen <- function(fit, conf_level = 0.95) { ... }
+tabelas_por_grupo <- tabela_nelson_aalen(fit_na, conf_level = 0.95) 
+
+for(grupo in names(tabelas_por_grupo)) {
+  cat("
+", paste(rep("=", 70), collapse = ""), "
+")
+  cat("GRUPO:", grupo, "
+")
+  cat(paste(rep("=", 70), collapse = ""), "
+")
+  print(tabelas_por_grupo[[grupo]])
+}
+
+MECANISMO DA FUNÇÃO E VARIÁVEIS CRIADAS:
+- `fit`: Objeto do tipo `survfit` ajustado previamente.
+- `z`: Valor crítico $z_{ lpha/2}$ extraído da Distribuição Normal Padrão (`qnorm`).
+- `fit$strata`: Estrutura interna que separa o número de observações por grupo.
+- `fit$time[idx]`: Tempos ordenados onde ocorreram eventos.
+- `fit$n.event[idx]`: Número de falhas/eventos ($d_j$) no tempo $t_j$.
+- `fit$n.risk[idx]`: Número de indivíduos sob risco ($n_j$) imediatamente antes de $t_j$.
+- `fit$cumhaz[idx]`: Risco acumulado estimado $\hat{H}(t_j)$.
+- `fit$std.chaz[idx]`: Erro padrão do risco acumulado.
+- `IC_lower` / `IC_upper`: Limites inferior e superior do IC calculados via transformação logarítmica.
+
+--------------------------------------------------------------------------------
+BLOCO 7: GRÁFICO DO RISCO ACUMULADO (NELSON-AALEN)
+--------------------------------------------------------------------------------
+CÓDIGO:
+ggsurvfit(fit_na, 
+          linewidth = 1.2,
+          type = "cumhaz") +
+  add_censor_mark(size = 2, alpha = 1)+
+  add_confidence_interval() +
+  labs(
+    x = "Tempo (semanas)",
+    y = "Função de risco acumulada estimada"
+  ) +
+  theme_classic(base_size = 16)
+
+PARÂMETROS ESPECÍFICOS:
+- `type = "cumhaz"`: Instrui o `ggsurvfit` a plotar a **Função de Risco Acumulado** $\hat{H}(t)$ ao invés da Função de Sobrevivência $\hat{S}(t)$.
+
+--------------------------------------------------------------------------------
+BLOCO 8: TEMPO DE SOBREVIVÊNCIA MÉDIA RESTRITA (RMST)
+--------------------------------------------------------------------------------
+CÓDIGO:
+Tempo = Dados$tempos
+Cens = Dados$cens
+Grupo <- as.numeric(as.factor(Dados$grupos)) - 1
+resultado = rmst2(Tempo, Cens, Grupo, tau = ?)
+
+VARIÁVEIS E PARÂMETROS:
+- `Tempo`: Vetor numérico dos tempos de observação.
+- `Cens`: Vetor de censuras (1 = evento, 0 = censurado).
+- `Grupo`: Vetor binário numérico (obrigatório ser 0 ou 1 para `rmst2`). Subtrai-se 1 do fator codificado.
+- `tau`: Ponto de truncamento/corte do tempo. Deve ser um tempo de acompanhamento seguro em que ainda haja indivíduos sob risco em ambos os grupos (usualmente próximo ou menor que o menor tempo máximo dos grupos).
+
+--------------------------------------------------------------------------------
+BLOCO 9: TESTES DE HIPÓTESES PARA COMPARAÇÃO DE CURVAS
+--------------------------------------------------------------------------------
+CÓDIGO:
+survdiff(Surv(tempos, cens) ~ grupos, data = Dados)
+logrank_test(Surv(tempos, cens) ~ factor(grupos), type = "Peto-Peto", data = Dados)
+
+VARIÁVEIS E PARÂMETROS:
+- `survdiff(...)`: Realiza o Teste de **Log-Rank** padrão (pesos iguais $w_j = 1$ para todos os tempos).
+- `logrank_test(..., type = "Peto-Peto")`: Realiza o Teste de **Peto-Peto** (pesos $w_j = \hat{S}(t_j)$ que dão maior relevância estatística a falhas ocorridas no **início** do estudo).
+
+--------------------------------------------------------------------------------
+BLOCO 10: COMPARAÇÕES MÚLTIPLAS PAIRWISE (PAR A PAR)
+--------------------------------------------------------------------------------
+CÓDIGO:
+res = pairwise_survdiff(Surv(tempos, cens) ~ grupos,
+                        data = Dados,
+                        p.adjust.method = "bonferroni" ou "holm",
+                        rho = 0 ou 1)
+p = res$p.value
+
+PARÂMETROS:
+- `p.adjust.method`: Método de correção do p-valor para evitar inflação do Erro Tipo I em múltiplas comparações:
+  * "bonferroni": Mais conservador. Multiplica o p-valor pelo número de comparações.
+  * "holm": Menos conservador que Bonferroni, mantendo o controle rigoroso do erro.
+- `rho`:
+  * `rho = 0`: Executa o teste de Log-Rank clássico em cada par.
+  * `rho = 1`: Executa o equivalente ao teste de Peto-Peto/Prentice em cada par.
+- `res$p.value`: Extrai a matriz com os p-valores ajustados entre cada par de grupos.
+================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+================================================================================
+          ANÁLISE DE SOBREVIVÊNCIA E CONFIABILIDADE (UFF)
+          GUIA COMPLETO DE INTERPRETAÇÃO DE RESULTADOS E SAÍDAS
+================================================================================
+
+Este documento é focado exclusivamente na interpretação das saídas (outputs)
+geradas pelos comandos de Análise de Sobrevivência em R no ambiente acadêmico da UFF.
+
+--------------------------------------------------------------------------------
+1. INTERPRETAÇÃO DA SAÍDA DE `summary(ekm)`
+--------------------------------------------------------------------------------
+CAMPOS TÍPICOS DA SAÍDA:
+- `time`: Tempos ($t_j$) em que ocorreu ao menos uma falha/evento.
+- `n.risk`: Número de indivíduos sob risco ($n_j$) imediatamente antes do tempo $t_j$.
+- `n.event`: Número de eventos/falhas ($d_j$) ocorridos exatamente no tempo $t_j$.
+- `survival`: Estimativa pontual da probabilidade de sobrevivência $\hat{S}(t_j)$.
+- `std.err`: Erro padrão da estimativa de sobrevivência (via Fórmula de Greenwood).
+- `lower 95% CI` e `upper 95% CI`: Limites do Intervalo de Confiança de 95% para S(t).
+
+COMO INTERPRETAR OS VALORES:
+- Se no tempo $t = 12$ semanas a coluna `survival` mostra `0.820`:
+  "A probabilidade estimada de um indivíduo sobreviver além de 12 semanas (ou não apresentar o evento até a semana 12) é de 82,0%."
+- Se a coluna `n.risk` cai drasticamente de uma linha para outra sem um aumento correspondente em `n.event`:
+  "Indica que ocorreram muitas censuras (perdas de acompanhamento ou fim de estudo) naquele intervalo."
+
+--------------------------------------------------------------------------------
+2. INTERPRETAÇÃO DA SAÍDA DE `summary(ekm, times = c(10, 20))`
+--------------------------------------------------------------------------------
+COMO INTERPRETAR:
+- Permite comparar diretamente a probabilidade de sobrevida acumulada em marcos fixos da pesquisa.
+- Exemplo de interpretação direta em prova ou trabalho:
+  "Na semana 10, a proporção estimada de sobreviventes no Grupo Tratamento é de 75% (IC 95%: [62%, 88%]), enquanto no Grupo Controle é de 40% (IC 95%: [28%, 54%])."
+
+--------------------------------------------------------------------------------
+3. INTERPRETAÇÃO DO GRÁFICO DA CURVA DE SOBREVIVÊNCIA (`ggsurvfit`)
+--------------------------------------------------------------------------------
+ASPECTOS VISUAIS E LEITURA PRÁTICA:
+- **Eixo Y (Sobrevivência):** Começa em 1.0 (100% de sobreviventes no tempo t=0) e diminui ao longo do tempo.
+- **Degraus (Quedas verticais):** Cada degrau indica a ocorrência de evento(s). Degraus mais profundos representam múltiplos eventos simultâneos.
+- **Marcadores de Censura (Traços verticais):** Mostram quando pacientes saíram do estudo sem falhar. A curva NÃO cai nas censuras, mas a precisão futura diminui (o IC se alarga).
+- **Faixas do IC (Sombra):** Quanto mais larga a sombra, menor a precisão da estimativa naquele período (frequentemente ao final do seguimento, onde restam poucos sob risco).
+- **Tabela de Risco (`add_risktable`):** Permite avaliar se a curva se tornou instável por falta de indivíduos sob risco.
+
+--------------------------------------------------------------------------------
+4. INTERPRETAÇÃO DOS QUANTIS DA SOBREVIVÊNCIA (`quantile(ekm, p)`)
+--------------------------------------------------------------------------------
+SAÍDA DA MEDIANA (`p = 0.5`):
+- Exemplo de output:
+  `Grupo 1: 34.0 (IC 95%: 22.0 - 48.0)`
+  `Grupo 2: 12.0 (IC 95%: 8.0 - 18.0)`
+
+COMO INTERPRETAR:
+- **Mediana = 34 semanas (Grupo 1):** "Estima-se que 50% dos indivíduos do Grupo 1 sofreram o evento em até 34 semanas (ou que 50% da população sobreviveu por pelo menos 34 semanas)."
+- **Por que usar a Mediana e não a Média?** A média clássica não pode ser calculada diretamente quando há dados censurados à direita, pois o tempo real de falha dos censurados é desconhecido. A mediana é imune a esse problema, desde que mais de 50% da amostra falhe.
+- Se a estimativa da mediana indicar `NA`:
+  "Significa que a curva de sobrevivência daquele grupo não caiu abaixo de 50% durante todo o tempo de acompanhamento da pesquisa."
+
+--------------------------------------------------------------------------------
+5. INTERPRETAÇÃO DA TABELA DE NELSON-AALEN (`tabela_nelson_aalen`)
+--------------------------------------------------------------------------------
+CAMPOS DA TABELA:
+- `tj`: Tempo da falha.
+- `dj`: Número de falhas no tempo tj.
+- `nj`: Número sob risco no tempo tj.
+- `Lambda`: Função de Risco Acumulado estimada $\hat{H}(t_j) = \sum rac{d_j}{n_j}$.
+- `Std.err`: Erro padrão de $\hat{H}(t_j)$.
+- `IC_lower` / `IC_upper`: Limites de confiança do Risco Acumulado.
+
+COMO INTERPRETAR OS VALORES:
+- `Lambda` ($\hat{H}(t)$) é uma medida do acúmulo de risco ao longo do tempo.
+- Diferente de $S(t)$, $H(t)$ cresce com o tempo e **pode ultrapassar 1.0**.
+- Se no tempo $t=20$ semanas temos $\hat{H}(20) = 0.85$:
+  "Representa a carga de risco acumulada até a 20ª semana. Quanto maior a inclinação do crescimento de $\hat{H}(t)$, maior o risco instantâneo $h(t)$ naquele período."
+
+--------------------------------------------------------------------------------
+6. INTERPRETAÇÃO DO GRÁFICO DE RISCO ACUMULADO
+--------------------------------------------------------------------------------
+ASPECTOS VISUAIS:
+- A curva começa no ponto $(0,0)$ e é estritamente **não-decrescente**.
+- **Inclinação (Declive) da Curva:**
+  * Inclinação alta/íngreme: Período com **alta taxa de eventos** (risco instantâneo elevado).
+  * Inclinação plana/horizontal: Período sem ocorrência de eventos (risco nulo no intervalo).
+- Comparação entre grupos: A curva do grupo que estiver **mais alta** indica o grupo de **maior risco total/acumulado**.
+
+--------------------------------------------------------------------------------
+7. INTERPRETAÇÃO DO RMST (`rmst2`)
+--------------------------------------------------------------------------------
+SAÍDA TÍPICA DO `rmst2`:
+- `RMST (Group 1)`: Tempo médio de vida até o tempo $	au$.
+- `RMST (Group 0)`: Tempo médio de vida até o tempo $	au$.
+- `Between-group contrast`: Diferença entre RMSTs ($RMST_1 - RMST_0$).
+
+EXEMPLO PRÁTICO DE LEITURA (para $	au = 50$ semanas):
+- Se $RMST_1 = 41.2$ semanas e $RMST_0 = 28.5$ semanas:
+  * "Até o horizonte de 50 semanas ($	au$), os indivíduos do Grupo 1 viveram em média 41,2 semanas, enquanto os do Grupo 0 viveram em média 28,5 semanas."
+  * **Diferença (41,2 - 28,5 = 12,7 semanas):** "O Tratamento 1 proporcionou um ganho médio de 12,7 semanas livres do evento dentro da janela de 50 semanas."
+- Se o p-valor associado à diferença for $< 0.05$:
+  "A diferença no tempo médio de sobrevivência restrito até 50 semanas entre os grupos é estatisticamente significante a 5% de significância."
+
+--------------------------------------------------------------------------------
+8. INTERPRETAÇÃO DOS TESTES DE HIPÓTESES (`survdiff` E `logrank_test`)
+--------------------------------------------------------------------------------
+HIPÓTESES DO TESTE:
+- $H_0$: As funções de sobrevivência são idênticas para todos os grupos ($S_1(t) = S_2(t) = \dots$).
+- $H_1$: Pelo menos um dos grupos possui função de sobrevivência diferente das demais.
+
+LEITURA DAS SAÍDAS:
+- `survdiff` (Log-Rank Padrão):
+  * Compara o número de eventos observados ($O$) com o número de eventos esperados ($E$) sob $H_0$.
+  * Se $O < E$ para o Grupo A: O Grupo A teve menos mortes/falhas do que o esperado ao acaso (grupo de melhor sobrevida).
+  * **P-Valor (Chisq p-value):**
+    - Se $p < 0,05$: Rejeita-se $H_0$. Há evidências estatísticas de diferença significativa entre as curvas de sobrevivência dos grupos.
+    - Se $p \ge 0,05$: Não se rejeita $H_0$. Não há evidência suficiente de diferença na sobrevivência entre os grupos.
+
+- `logrank_test(..., type = "Peto-Peto")`:
+  * Usado quando se suspeita que o efeito do tratamento ocorre **no início** do acompanhamento.
+  * Se Log-Rank der $p > 0,05$ e Peto-Peto der $p < 0,05$: Significa que há uma diferença importante nas taxas de sobrevivência iniciais que o Log-Rank padrão não capturou por causa das censuras ou divergências tardias.
+
+--------------------------------------------------------------------------------
+9. INTERPRETAÇÃO DAS COMPARAÇÕES MÚLTIPLAS (`pairwise_survdiff`)
+--------------------------------------------------------------------------------
+SAÍDA DA MATRIZ DE P-VALORES:
+          Grupo A    Grupo B
+Grupo B   0.0012     -
+Grupo C   0.4500     0.0230
+
+COMO INTERPRETAR:
+- Analisa-se cada célula com base em $ lpha = 0,05$ (já considerando os p-valores ajustados por Bonferroni ou Holm):
+  1. **Grupo A vs Grupo B ($p = 0.0012 < 0.05$):** Existe diferença estatisticamente significante na sobrevivência entre A e B.
+  2. **Grupo A vs Grupo C ($p = 0.4500 \ge 0.05$):** Não há diferença significante entre a sobrevida de A e C.
+  3. **Grupo B vs Grupo C ($p = 0.0230 < 0.05$):** Existe diferença estatisticamente significante entre B e C.
+- **Conclusão Global das Comparações Múltiplas:** O Grupo B apresenta comportamento de sobrevivência distinto tanto de A quanto de C, enquanto A e C possuem desempenhos estatisticamente equivalentes.
+================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+================================================================================
+          RESUMO CONSOLIDADO DE ANÁLISE DE SOBREVIVÊNCIA NÃO PARAMÉTRICA
+================================================================================
+
+--------------------------------------------------------------------------------
+1. ESTRUTURA E CONCEITOS DA TABELA DE SOBREVIVÊNCIA (KAPLAN-MEIER E NELSON-AALEN)
+--------------------------------------------------------------------------------
+
+[Amostra com N = 19 observações | Truncamento em tau = 11 semanas]
+
+INTERVALO [tj-1; tj) | nj | dj | cj | S^(t)  | IC 95% Log-Log S^(t) | Ampl. | H^(t)  | h^(t)  | m(t|11) | E(tj)
+------------------------------------------------------------------------------------------------------------------
+[0; 1)               | 19 | 2  | 0  | 0.8947 | [0.641; 0.973]      | 0.332 | 0.1053 | 0.1053 | 6.82    | 2.00
+[1; 2)               | 17 | 1  | 0  | 0.8421 | [0.587; 0.948]      | 0.361 | 0.1641 | 0.0588 | 6.50    | 1.00
+[2; 3)               | 16 | 3  | 0  | 0.6842 | [0.428; 0.844]      | 0.416 | 0.3516 | 0.1875 | 6.89    | 3.00
+[3; 4)               | 13 | 0  | 1  | 0.6842 | [0.428; 0.844]      | 0.416 | 0.3516 | 0.0000 | 5.89    | 0.00
+[4; 5)               | 12 | 1  | 0  | 0.6272 | [0.371; 0.805]      | 0.434 | 0.4349 | 0.0833 | 5.42    | 1.00
+[5; 6)               | 11 | 0  | 2  | 0.6272 | [0.371; 0.805]      | 0.434 | 0.4349 | 0.0000 | 4.42    | 0.00
+[6; 7)               | 9  | 0  | 1  | 0.6272 | [0.371; 0.805]      | 0.434 | 0.4349 | 0.0000 | 3.42    | 0.00
+[7; 8)               | 8  | 1  | 0  | 0.5488 | [0.295; 0.745]      | 0.450 | 0.5599 | 0.1250 | 2.91    | 1.00
+[8; 9)               | 7  | 1  | 0  | 0.4704 | [0.227; 0.683]      | 0.456 | 0.7028 | 0.1429 | 2.39    | 1.00
+[9; 10)              | 6  | 1  | 3  | 0.3920 | [0.164; 0.617]      | 0.453 | 0.8695 | 0.1667 | 1.87    | 1.00
+[10; 11)             | 2  | 1  | 1  | 0.1960 | [0.023; 0.489]      | 0.466 | 1.3695 | 0.5000 | 1.00    | 1.00
+[11; inf)            | 0  | 0  | 0  | 0.1960 | [0.023; 0.489]      | 0.466 | 1.3695 | 0.0000 | 0.00    | 0.00
+------------------------------------------------------------------------------------------------------------------
+
+INTERPRETAÇÃO DAS COLUNAS:
+* [tj-1; tj): Intervalo de tempo contínuo onde S^(t) permanece constante (degrau da curva).
+* nj (Sob Risco): Indivíduos vivos e não censurados imediatamente antes do instante tj.
+* dj (Evento): Ocorrências do evento de interesse (falhas/mortes) registradas exatamente em tj.
+* cj (Censura): Indivíduos que saíram do estudo sem apresentar o evento em tj.
+* S^(t) (Sobrevivência KM): Probabilidade acumulada de sobreviver além do tempo t. 
+  Fórmula: S^(tj) = S^(tj-1) * (1 - dj/nj)
+* IC 95% Log-Log: Intervalo de confiança com transformação log-log, garantindo limites em [0, 1].
+* Amplitude do IC: Diferença entre Limite Superior e Limite Inferior. AUMENTA com o tempo devido
+  à redução de nj (perda de precisão amostral e aumento do Erro Padrão via Fórmula de Greenwood).
+* H^(t) (Risco Acumulado NA): Estimador de Nelson-Aalen. Mede a carga total de risco acumulada.
+  Fórmula: H^(t) = Soma(dj/nj)
+* h^(t) (Risco Instantâneo): Taxa pontual de falha no instante tj. Fórmula: h^(tj) = dj/nj
+* m(t|tau) (Tempo Médio Residual Restrito): Expectativa de tempo de vida adicional dada a
+  sobrevivência até o tempo t, calculada até o ponto de corte tau = 11.
+  Fórmula: m(t|tau) = Integral_t_até_tau(S(u)du) / S(t)
+* E(tj) (Eventos Esperados): Frequência esperada de falhas sob a hipótese nula. Na análise de grupo
+  único, E(tj) = dj. Em testes de 2 grupos: E1(tj) = d(tj) * [n1(tj) / n(tj)].
+
+
+--------------------------------------------------------------------------------
+2. PERCENTIS DA SOBREVIVÊNCIA
+--------------------------------------------------------------------------------
+* 25º Percentil (Q1 / t_0.25): Tempo para a sobrevivência cair a 75% -> t_0.25 = 3 semanas.
+* Mediana / 50º Percentil (Q2 / t_0.50): Tempo para a sobrevivência cair a 50% -> t_0.50 = 9 semanas.
+* 75º Percentil (Q3 / t_0.75): Tempo para a sobrevivência cair a 25% -> t_0.75 = 11 semanas.
+
+REGRA DO ZERAMENTO DA CURVA S^(t):
+* A curva S^(t) SÓ zera ao final se a última observação for exclusivamente de falha/evento (d = n).
+* Se a última observação for censura (como ocorreu no tempo 11*), a curva se estabiliza no último
+  nível calculado (S^(11) = 0.1960) e nunca chega a zero de forma empírica.
+
+
+--------------------------------------------------------------------------------
+3. COMPARAÇÃO DE GRUPOS: LOG-RANK VS. PETO & PETO
+--------------------------------------------------------------------------------
+
+Estatística Geral Ponderada: Q = [Soma(wj * (O1j - E1j))]^2 / Soma(wj^2 * V1j)
+
+A) TESTE DE LOG-RANK (wj = 1):
+* Atribui PESO IGUAL a todas as falhas, independentemente de quando ocorrem.
+* Aplicação: Quando a suposição de RISCOS PROPORCIONAIS é satisfeita (razão de riscos constante).
+
+B) TESTE DE PETO & PETO (wj = S^(tj-1)):
+* Atribui PESO DECRESCENTE (baseado na sobrevivência acumulada anterior).
+* Dá maior peso aos eventos INICIAIS e reduz a influência dos eventos tardios.
+* Aplicação: Quando as diferenças entre tratamentos ocorrem precocemente ou quando as curvas
+  se aproximam/cruzam no final do acompanhamento.
+
+
+--------------------------------------------------------------------------------
+4. CORREÇÕES PARA COMPARAÇÕES MÚLTIPLAS
+--------------------------------------------------------------------------------
+Quando comparamos 3 ou mais grupos por pares de testes de Log-Rank, a taxa de erro Tipo I global infla.
+
+A) MÉTODO DE BONFERRONI:
+* Relação: p_ajustado = min(1, p * k), onde k é o número de comparações.
+* Característica: Extremamente conservador; fácil para cálculos manuais.
+
+B) MÉTODO DE HOLM-BONFERRONI:
+* Relação: Ajuste sequencial ordenando os p-valores: p(1) <= p(2) <= ... <= p(k).
+  Compara-se p(i) com alpha / (k - i + 1).
+* Característica: Mantém o controle do erro global, mas é MAIS PODEROSO que Bonferroni.
+================================================================================
