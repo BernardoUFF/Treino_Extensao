@@ -74,7 +74,11 @@ attach(dados_bd2)
 # Padronizar as categorias SEXO_PROPRIETARIO para Masculino e Feminino
 # Atribuir legendas para a variável TIPO_VEICULO, sendo 1: Carro e 2: Moto
 # Criar uma nova variável em dados_bd2 F_IDADE categorizando as idades em: 22 a 34, 35 a 45
-
+dados_bd2$SEXO_PROPRIETARIO=factor(dados_bd2$SEXO_PROPRIETARIO, levels =c(1, 2), labels =c("Masculino", "Feminino"))
+dados_bd2$TIPO_VEICULO=factor(dados_bd2$TIPO_VEICULO, levels = c(1, 2), labels = c("Carro", "Moto"))
+dados_bd2$f_idade = ifelse(dados_bd2$IDADE_PROPRIETARIO >= 22 & dados_bd2$IDADE_PROPRIETARIO <= 34, "22 a 34", 
+                           ifelse(dados_bd2$IDADE_PROPRIETARIO >= 35 & dados_bd2$IDADE_PROPRIETARIO <=45, "35 a 45", NA))
+table(dados_bd2$f_idade)
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
