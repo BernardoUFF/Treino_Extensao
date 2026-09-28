@@ -143,6 +143,15 @@ table(nchar(dados_bd3$MUNICIPIO))
 # POPH: população total de habilitados
 # POPHF: população total feminina de habilitadas
 # POPHM: população total masculina de habilitadas
+BANCO3_RJ<- data.frame(
+  ANO = 2025,
+  NIVEL = ifelse(dados_bd3$MUNICIPIOS == "33", "UF", "MUNICIPIO"),
+  CODIGO = dados_bd3$MUNICIPIOS,
+  POPH = dados_bd3$HABILITADOS_GERAL_2025,
+  POPHF = dados_bd3$POP_FEM_HABILITADA_2020,
+  POPHM = dados_bd3$POP_MASC_HABILITADA_2020
+)
+BANCO3_RJ
 
 # Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
 
