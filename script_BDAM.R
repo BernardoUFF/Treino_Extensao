@@ -118,6 +118,10 @@ head(dados_bd2)
 
 # Tarefa 1: Leitura do banco de dados banco 3 = SIDRA.csv com o nome de dados_bd3
 # Ler o arquivo, verificar estrutura dos dados e dar uma olhada nos dados
+dados_bd3<-read.csv("banco 3 SIDRA.csv", header = TRUE, sep = ";")
+str(dados_bd3)
+summary(dados_bd3)
+attach(dados_bd3)
 
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
