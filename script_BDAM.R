@@ -170,11 +170,11 @@ write.csv(BANCO3_RJ, "BANCO3_RJ.csv", row.names = FALSE)
 # códigos dos municípios - 2010.csv" com os códigos do IBGE para os municípios do Brasil
 # Ler os arquivos, verificar estruturas dos dados e dar uma olhada nos dados
 dados_bd4 <- read.csv("banco 4 ATLAS.csv", header = TRUE, sep = ";")
-cod_ibge <- read.csv("códigos dos municípios - 2010.csv", header = TRUE, sep = ";")
+codigos_ibge <- read.csv("códigos dos municípios - 2010.csv", header = TRUE, sep = ";")
 str(dados_bd4)
 head(dados_bd4)
-str(cod_ibge)
-head(cod_ibge)
+str(codigos_ibge)
+head(codigos_ibge)
 
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
@@ -182,7 +182,13 @@ head(cod_ibge)
 # Tarefa 2: Manipulação dos dados
 # Criar uma nova variável em dados_bd4 MUNICIPIOS atribuindo os códigos dos municípios, de forma a ficar
 # coerente com os nomes dos municipios e códigos IBGE
+dados_bd4$MUNICIPIOS <- codigos_ibge$CODMUNRES[match(trimws(rownames(dados_bd4)), trimws(codigos_ibge[["município"]]))]
+dados_bd4$MUNICIPIOS <- substr(format(dados_bd4$MUNICIPIOS, scientific = FALSE, trim = TRUE), 1, 6)
+dados_bd4$MUNICIPIOS[1] <- "33"
 
+head(dados_bd4)
+sum(is.na(dados_bd4$MUNICIPIOS))
+table(substr(dados_bd4$MUNICIPIOS, 1, 2))
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
