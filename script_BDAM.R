@@ -200,7 +200,15 @@ table(substr(dados_bd4$MUNICIPIOS, 1, 2))
 # QR_CA: qualidade da rodovia em 2020
 # QRU: qualidade das rodovias urbanas
 # QRR: qualidade das rodovias rurais
-
+BANCO4_RJ <- data.frame(
+  ANO    = 2025,
+  NIVEL  = ifelse(dados_bd4$MUNICIPIOS == "33", "UF", "MUNICIPIO"),
+  CODIGO = dados_bd4$MUNICIPIOS,
+  QR_CA  = dados_bd4$QUALIDADE_RODOVIAS_2020,
+  QRU    = dados_bd4$QUALIDADE_URBANA_2025,
+  QRR    = dados_bd4$QUALIDADE_RURAL_2025
+)
+BANCO4_RJ
 
 # Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
 
