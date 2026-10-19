@@ -225,13 +225,19 @@ write.csv(BANCO4_RJ, "BANCO4_RJ.csv", row.names = FALSE)
 
 # Tarefa 1: Leitura do banco de dados banco 5 = SINISA.csv com o nome de dados_bd5 
 # Ler os arquivos, verificar estruturas dos dados e dar uma olhada nos dados
-
+dados_bd5 <- read.csv("banco 5 = SINISA.csv", sep = ";", header = TRUE, encoding = "latin1")
+str(dados_bd5)
+head(dados_bd5)
+dim(dados_bd5)
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
 
 # Tarefa 2: Manipulação dos dados
 # Observe que os números estão com ponto indicando milhar. Estes pontos devem ser extraídos para não confundir com decimal
-
+dados_bd5$NUM_CARROS_REG <- as.numeric(gsub("\\.", "", as.character(dados_bd5$NUM_CARROS_REG)))
+dados_bd5$NUM_MOTOS_REG <- as.numeric(gsub("\\.", "", as.character(dados_bd5$NUM_MOTOS_REG)))
+str(dados_bd5)
+head(dados_bd5)
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
@@ -242,12 +248,31 @@ write.csv(BANCO4_RJ, "BANCO4_RJ.csv", row.names = FALSE)
 # CODIGO: código do municipio (ou da UF)
 # NCR: número de carros registrados
 # NMR: número de motos registradas
+linha_estado <- data.frame(
+  ANO = 2025,
+  NIVEL = "UF",
+  CODIGO = 33,
+  NCR = sum(dados_bd5$NUM_CARROS_REG, na.rm = TRUE),
+  NMR = sum(dados_bd5$NUM_MOTOS_REG, na.rm = TRUE)
+)
+municipios <- data.frame(
+  ANO = 2025,
+  NIVEL = "MUNICIPIO",
+  CODIGO = dados_bd5$MUNICIPIO,
+  NCR = dados_bd5$NUM_CARROS_REG,
+  NMR = dados_bd5$NUM_MOTOS_REG
+)
+BANCO5_RJ <- rbind(linha_estado, municipios)
+BANCO5_RJ$CODIGO <- as.character(BANCO5_RJ$CODIGO)
+str(BANCO5_RJ)
+head(BANCO5_RJ)
+dim(BANCO5_RJ)
 
 # Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
 
 
 # Tarefa 4: Exportar o banco de dados BANCO5_RJ com o nome BANCO5_RJ.csv
-
+write.csv(BANCO5_RJ, "BANCO5_RJ.csv", row.names = FALSE)
 # Ao terminar a Tarefa 4 commit com a mensagem "dados e script - Etapa 5" e envie para o repositório Treino_Extensao
 
 
