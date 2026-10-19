@@ -327,7 +327,32 @@ write.csv(BANCO5_RJ, "BANCO5_RJ.csv", row.names = FALSE)
 # TACO: total de acidentes cuja causa foi outros
 # NCR: número de carros registrados
 # NMR: número de motos registradas
-
+bd3 <- read.csv("BANCO3_RJ.csv", header = TRUE)
+bd4 <- read.csv("BANCO4_RJ.csv", header = TRUE)
+bd5 <- read.csv("BANCO5_RJ.csv", header = TRUE)
+bd3$CODIGO <- as.character(bd3$CODIGO)
+bd4$CODIGO <- as.character(bd4$CODIGO)
+bd5$CODIGO <- as.character(bd5$CODIGO)
+BDAM_RJ <- merge(bd3, bd4, by = c("ANO", "NIVEL", "CODIGO"), all = TRUE)
+BDAM_RJ <- merge(BDAM_RJ, bd3, by = c("ANO", "NIVEL", "CODIGO"), all = TRUE)
+BDAM_RJ <- merge(BDAM_RJ, bd4, by = c("ANO", "NIVEL", "CODIGO"), all = TRUE)
+BDAM_RJ <- merge(BDAM_RJ, bd5, by = c("ANO", "NIVEL", "CODIGO"), all = TRUE)
+colunas_ordem <- c(
+  "ANO", "NIVEL", "CODIGO",
+  "POPH", "POPHF", "POPHM",
+  "QR_CA", "QRU", "QRR",
+  "TVV", "TCV", "TMV", "TVVF", "TVVM", "TVC_22_34", "TVC_35_45",
+  "VMV", "DPV", "V_P25", "V_P50", "V_P75",
+  "TV", "TC", "TM", "TVCF", "TVCM", "TC_22_34", "TC_35_45",
+  "NMF", "DPF", "F_P25", "F_P50", "F_P75",
+  "TAFA", "TADS", "TADA", "TACO",
+  "NCR", "NMR"
+)
+BDAM_RJ <- BDAM_RJ[, colunas_ordem[colunas_ordem %in% names(BDAM_RJ)]]
+BDAM_RJ <- BDAM_RJ[order(BDAM_RJ$NIVEL != "UF"), ]
+str(BDAM_RJ)
+head(BDAM_RJ)
+dim(BDAM_RJ)
 # Ao terminar a Tarefa 1 commit com a mensagem " script - tarefa 1" e envie para o repositório Treino_Extensao
 
 
