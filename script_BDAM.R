@@ -128,9 +128,10 @@ attach(dados_bd3)
 
 # Tarefa 2: Manipulação dos dados
 # Criar a variável MUNICIPIOS = MUNICIPIO em dados_bd3, sendo que agora com 6 dígitos (em vez de 7 dígitos), desprezando o último dígito verificador
-dados_bd3$MUNICIPIO<-substr(format(dados_bd3$MUNICIPIO, scientific = FALSE, trim = TRUE), 1, 6)
+dados_bd3$MUNICIPIOS<-substr(format(dados_bd3$MUNICIPIO, scientific = FALSE, trim = TRUE), 1, 6)
 head(dados_bd3[, c("MUNICIPIO", "MUNICIPIOS")])
 table(nchar(dados_bd3$MUNICIPIO))
+
 # Ao terminar a Tarefa 2 commit com a mensagem " script - tarefa 1 a 2" e envie para o repositório Treino_Extensao
 
 
@@ -142,11 +143,21 @@ table(nchar(dados_bd3$MUNICIPIO))
 # POPH: população total de habilitados
 # POPHF: população total feminina de habilitadas
 # POPHM: população total masculina de habilitadas
+BANCO3_RJ<- data.frame(
+  ANO = 2025,
+  NIVEL = ifelse(dados_bd3$MUNICIPIOS == "33", "UF", "MUNICIPIO"),
+  CODIGO = dados_bd3$MUNICIPIOS,
+  POPH = dados_bd3$HABILITADOS_GERAL_2025,
+  POPHF = dados_bd3$POP_FEM_HABILITADA_2020,
+  POPHM = dados_bd3$POP_MASC_HABILITADA_2020
+)
+BANCO3_RJ
 
 # Ao terminar a Tarefa 3 commit com a mensagem " script - tarefa 1 a 3" e envie para o repositório Treino_Extensao
 
 
 # Tarefa 4: Exportar o banco de dados BANCO3_RJ com o nome BANCO3_RJ.csv
+write.csv(BANCO3_RJ, "BANCO3_RJ.csv", row.names = FALSE)
 
 # Ao terminar a Tarefa 4 commit com a mensagem "dados e script - Etapa 3" e envie para o repositório Treino_Extensao
 
